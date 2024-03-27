@@ -11,4 +11,5 @@ public interface IProductService
     public Task<ServiceResponse> AddProduct(ProductAddDTO productAddDTO, UserDTO requestingUser, CancellationToken cancellationToken = default);
     public Task<ServiceResponse> UpdateProduct(ProductUpdateDTO productUpdateDTO, UserDTO requestingUser, CancellationToken cancellationToken = default);
     public Task<ServiceResponse> DeleteProduct(Guid id, UserDTO requestingUserl, CancellationToken cancellationToken = default);
+    public Task<ServiceResponse<PagedResponse<ProductDTO>>> GetProductsByOwnerId(PaginationSearchQueryParams pagination, CancellationToken cancellationToken = default);
 }

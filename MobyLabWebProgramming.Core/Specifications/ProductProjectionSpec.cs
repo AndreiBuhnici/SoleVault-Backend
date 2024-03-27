@@ -35,8 +35,17 @@ public sealed class ProductProjectionSpec : BaseSpec<ProductProjectionSpec, Prod
         UpdatedAt = e.UpdatedAt
     };
 
-    public ProductProjectionSpec(Guid id) : base(id)
+    public ProductProjectionSpec(Guid id, string search)
     {
+        if (search == "Product")
+        {
+            Query.Where(e => e.Id == id);
+        }
+
+        if (search == "Owner")
+        {
+            Query.Where(e => e.OwnerId == id);
+        }
     }
 
     public ProductProjectionSpec(string? search)
@@ -53,6 +62,7 @@ public sealed class ProductProjectionSpec : BaseSpec<ProductProjectionSpec, Prod
         Query.Where(e => EF.Functions.ILike(e.Name, searchExpr) ||
                                        EF.Functions.ILike(e.Description, searchExpr) ||
                                        EF.Functions.ILike(e.Category.Name, searchExpr) ||
-                                       EF.Functions.ILike(e.Owner.Name, searchExpr));
+                                       EF.Functions.ILike(e.Owner.Name, searchExpr) ||
+                                       EF.Functions.ILike(e.Color, searchExpr));
     }
 }

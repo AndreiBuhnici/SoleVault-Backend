@@ -16,12 +16,14 @@ public class OrderService : IOrderService
     private readonly IRepository<WebAppDatabaseContext> _repository;
     private readonly IOrderItemService _orderItemService;
     private readonly ICartService _cartService;
+    private readonly ICartItemService _cartItemService;
 
-    public OrderService(IRepository<WebAppDatabaseContext> repository, IOrderItemService orderItemService, ICartService cartService)
+    public OrderService(IRepository<WebAppDatabaseContext> repository, IOrderItemService orderItemService, ICartService cartService, ICartItemService cartItemService)
     {
         _repository = repository;
         _orderItemService = orderItemService;
         _cartService = cartService;
+        _cartItemService = cartItemService;
     }
 
     public async Task<ServiceResponse> CreateOrder(OrderAddDTO orderAddDTO, UserDTO requestingUser, CancellationToken cancellationToken = default)
@@ -43,11 +45,11 @@ public class OrderService : IOrderService
             return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart not found!", ErrorCodes.EntityNotFound));
         }
 
-        var cartItems = await _repository.ListAsync(new CartItemProjectionSpec(requestingUser.Cart.Id), cancellationToken);
+        var cartItems = await _cartItemService.GetCartItems(requestingUser, cancellationToken);
 
-        if (cartItems.Count == 0)
+        if (cartItems == null || cartItems.Result == null)
         {
-            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart is empty!", ErrorCodes.EntityNotFound));
+            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart items not found!", ErrorCodes.EntityNotFound));
         }
 
         var order = await _repository.AddAsync(new Order
@@ -57,10 +59,10 @@ public class OrderService : IOrderService
             DeliveryDate = DateTime.Now.AddDays(new Random().Next(3, 7)),
             ShippingAddress = orderAddDTO.ShippingAddress,
             Status = "Pending",
-            Total = cartItems.Sum(ci => ci.Product.Price * ci.Quantity)
+            Total = cartItems.Result.Sum(ci => ci.Product.Price * ci.Quantity)
         }, cancellationToken);
 
-        foreach (var cartItem in cartItems)
+        foreach (var cartItem in cartItems.Result)
         {
             await _orderItemService.AddOrderItem(new OrderItemAddDTO
             {
@@ -71,7 +73,7 @@ public class OrderService : IOrderService
             }, cancellationToken);
         }
 
-        await _cartService.ClearCart(requestingUser, cancellationToken);
+        await _cartService.ClearCart(new ClearCartDTO() { Bought = true}, requestingUser, cancellationToken);
 
         return ServiceResponse.ForSuccess();
     }

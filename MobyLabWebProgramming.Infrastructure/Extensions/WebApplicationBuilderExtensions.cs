@@ -179,7 +179,8 @@ public static class WebApplicationBuilderExtensions
             .AddTransient<ICartService, CartService>()
             .AddTransient<ICartItemService, CartItemService>()
             .AddTransient<IOrderService, OrderService>()
-            .AddTransient<IOrderItemService, OrderItemService>();
+            .AddTransient<IOrderItemService, OrderItemService>()
+            .AddTransient<IFeedbackFormService, FeedbackFormService>();
 
         return builder;
     }

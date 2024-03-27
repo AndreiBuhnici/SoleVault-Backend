@@ -30,9 +30,17 @@ public sealed class CartItemProjectionSpec : BaseSpec<CartItemProjectionSpec, Ca
         UpdatedAt = e.UpdatedAt
     };
 
-    public CartItemProjectionSpec(Guid cartId)
+    public CartItemProjectionSpec(Guid Id, string search)
     {
-        Query.Where(e => e.CartId == cartId);
+        if (search == "Cart")
+        {
+            Query.Where(e => e.CartId == Id);
+        }
+
+        if (search == "Product")
+        {
+            Query.Where(e => e.ProductId == Id);
+        }
     }
 
     public CartItemProjectionSpec(Guid productId, Guid cartId)

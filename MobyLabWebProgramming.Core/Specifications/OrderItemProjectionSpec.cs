@@ -43,8 +43,16 @@ public sealed class OrderItemProjectionSpec : BaseSpec<OrderItemProjectionSpec, 
         UpdatedAt = e.UpdatedAt
     };
 
-    public OrderItemProjectionSpec(Guid orderId)
+    public OrderItemProjectionSpec(Guid id, string search)
     {
-        Query.Where(e => e.OrderId == orderId);
+        if (search == "Order")
+        {
+            Query.Where(e => e.OrderId == id);
+        }
+
+        if (search == "Product")
+        {
+            Query.Where(e => e.ProductId == id);
+        }
     }
 }

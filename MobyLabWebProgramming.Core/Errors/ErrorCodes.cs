@@ -25,4 +25,6 @@ public enum ErrorCodes
     CartAlreadyExists,
     NotEnoughStock,
     InvalidQuantity,
+    InvalidSearchQuery,
+    UserPermission
 }

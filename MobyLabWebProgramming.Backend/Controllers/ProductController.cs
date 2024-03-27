@@ -32,6 +32,16 @@ public class ProductController : AuthorizedController
 
     [Authorize]
     [HttpGet]
+    public async Task<ActionResult<RequestResponse<PagedResponse<ProductDTO>>>> GetPagebyOwnerId([FromQuery] PaginationSearchQueryParams pagination)
+    {
+        var currentUser = await GetCurrentUser();
+        return currentUser.Result != null ?
+            this.FromServiceResponse(await _productService.GetProductsByOwnerId(pagination)) :
+            this.ErrorMessageResult<PagedResponse<ProductDTO>>(currentUser.Error);
+    }
+
+    [Authorize]
+    [HttpGet]
     public async Task<ActionResult<RequestResponse<PagedResponse<ProductDTO>>>> GetPage([FromQuery] PaginationSearchQueryParams pagination)
     {
         var currentUser = await GetCurrentUser();    

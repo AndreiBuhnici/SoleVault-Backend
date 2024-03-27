@@ -22,7 +22,7 @@ public class CartService : ICartService
         _cartItemService = cartItemService;
     }
 
-    public async Task<ServiceResponse> ClearCart(UserDTO requestingUser, CancellationToken cancellationToken = default)
+    public async Task<ServiceResponse> ClearCart(ClearCartDTO clearCartDTO, UserDTO requestingUser, CancellationToken cancellationToken = default)
     {
         if (requestingUser == null)
         {
@@ -43,7 +43,18 @@ public class CartService : ICartService
 
         foreach (var cartItem in cartItems.Result)
         {
-            await _cartItemService.RemoveCartItem(cartItem.Id, requestingUser, cancellationToken);
+            var cartItemRemoveDTO = new CartItemRemoveDTO()
+            {
+                Id = cartItem.Id,
+                Bought = false
+            };
+
+            if (clearCartDTO.Bought)
+            {
+                cartItemRemoveDTO.Bought = true;
+            }
+
+            await _cartItemService.RemoveCartItem(cartItemRemoveDTO, requestingUser, cancellationToken);
         }
 
         return ServiceResponse.ForSuccess();
@@ -115,7 +126,7 @@ public class CartService : ICartService
             return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart not found!", ErrorCodes.EntityNotFound));
         }
 
-        await ClearCart(requestingUser, cancellationToken);
+        await ClearCart(new ClearCartDTO() { Bought = false } , requestingUser, cancellationToken);
 
         await _repository.DeleteAsync<Cart>(cart.Id, cancellationToken);
 

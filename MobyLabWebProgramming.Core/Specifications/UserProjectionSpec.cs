@@ -63,6 +63,15 @@ public sealed class UserProjectionSpec : BaseSpec<UserProjectionSpec, User, User
             CreatedAt = e.Cart.CreatedAt,
             UpdatedAt = e.Cart.UpdatedAt,
         } : null,
+        FeedbackForm = e.FeedbackForm != null ? new()
+        {
+            Id = e.FeedbackForm.Id,
+            OverallRating = e.FeedbackForm.OverallRating,
+            DeliveryRating = e.FeedbackForm.DeliveryRating,
+            FavoriteFeatures = e.FeedbackForm.FavoriteFeatures,
+            Feedback = e.FeedbackForm.Feedback,
+            CreatedAt = e.FeedbackForm.CreatedAt
+        } : null
     };
 
     public UserProjectionSpec(bool orderByCreatedAt = true) : base(orderByCreatedAt)

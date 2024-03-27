@@ -32,12 +32,12 @@ public class CartController : AuthorizedController
     }
 
     [Authorize]
-    [HttpPost]
+    [HttpDelete]
     public async Task<ActionResult<RequestResponse>> ClearCart()
     {
         var currentUser = await GetCurrentUser();
         return currentUser.Result != null ?
-            this.FromServiceResponse(await _cartService.ClearCart(currentUser.Result)) :
+            this.FromServiceResponse(await _cartService.ClearCart(new ClearCartDTO() { Bought = false }, currentUser.Result)) :
             this.ErrorMessageResult(currentUser.Error);
     }
 
@@ -57,7 +57,7 @@ public class CartController : AuthorizedController
     {
         var currentUser = await GetCurrentUser();
         return currentUser.Result != null ?
-            this.FromServiceResponse(await _cartItemService.RemoveCartItem(cartItemId, currentUser.Result)) :
+            this.FromServiceResponse(await _cartItemService.RemoveCartItem(new CartItemRemoveDTO() { Id = cartItemId, Bought = false }, currentUser.Result)) :
             this.ErrorMessageResult(currentUser.Error);
     }
 

@@ -16,11 +16,15 @@ public class ProductService : IProductService
 {
     private readonly IRepository<WebAppDatabaseContext> _repository;
     private readonly IUserService _userService;
+    private readonly ICartItemService _cartItemService;
+    private readonly IOrderItemService _orderItemService;
 
-    public ProductService(IRepository<WebAppDatabaseContext> repository, IUserService userService)
+    public ProductService(IRepository<WebAppDatabaseContext> repository, IUserService userService, ICartItemService cartItemService, IOrderItemService orderItemService)
     {
         _repository = repository;
         _userService = userService;
+        _cartItemService = cartItemService;
+        _orderItemService = orderItemService;
     }
 
     public async Task<ServiceResponse> AddProduct(ProductAddDTO productAddDTO, UserDTO requestingUser, CancellationToken cancellationToken = default)
@@ -86,14 +90,26 @@ public class ProductService : IProductService
             return ServiceResponse.FromError(new(HttpStatusCode.Forbidden, "You are not the owner of this product!", ErrorCodes.NotOwner));
         }
 
-        await _repository.DeleteAsync<Product>(id, cancellationToken);
+        var cartItems = await _cartItemService.GetCartItemsByProductId(id, cancellationToken);
+        var orderItems = await _orderItemService.GetOrderItemsByProductId(id, cancellationToken);
+
+        if ((cartItems.Result != null && cartItems.Result.Count > 0) || (orderItems.Result != null && orderItems.Result.Count > 0))
+        {
+            await UpdateProduct(new ProductUpdateDTO
+            (
+                Id : id,
+                Stock : 0
+            ), requestingUser, cancellationToken);
+        } else {
+            await _repository.DeleteAsync<Product>(id, cancellationToken);
+        }
 
         return ServiceResponse.ForSuccess();
     }
 
     public async Task<ServiceResponse<ProductDTO>> GetProduct(Guid id, CancellationToken cancellationToken = default)
     {
-        var product = await _repository.GetAsync(new ProductProjectionSpec(id), cancellationToken);
+        var product = await _repository.GetAsync(new ProductProjectionSpec(id, "Product"), cancellationToken);
 
         return product != null ?
             ServiceResponse<ProductDTO>.ForSuccess(product) : 
@@ -141,5 +157,17 @@ public class ProductService : IProductService
         await _repository.UpdateAsync(product, cancellationToken);
 
         return ServiceResponse.ForSuccess();
+    }
+
+    public async Task<ServiceResponse<PagedResponse<ProductDTO>>> GetProductsByOwnerId(PaginationSearchQueryParams pagination, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(pagination.Search, out _))
+            return ServiceResponse<PagedResponse<ProductDTO>>.FromError(new(HttpStatusCode.BadRequest, "Invalid search query!", ErrorCodes.InvalidSearchQuery));
+
+        Guid guid = Guid.Parse(pagination.Search);
+
+        var result = await _repository.PageAsync(pagination, new ProductProjectionSpec(guid, "Owner"), cancellationToken);
+
+        return ServiceResponse<PagedResponse<ProductDTO>>.ForSuccess(result);
     }
 }

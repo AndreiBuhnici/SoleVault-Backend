@@ -22,4 +22,6 @@ public class User : BaseEntity
     public Cart? Cart { get; set; } = default!;
     public ICollection<Order> Orders { get; set; } = default!;
     public ICollection<Product> Products { get; set; } = default!;
+    public Guid? FeedbackFormId { get; set; }
+    public FeedbackForm? FeedbackForm { get; set; } = default!;
 }

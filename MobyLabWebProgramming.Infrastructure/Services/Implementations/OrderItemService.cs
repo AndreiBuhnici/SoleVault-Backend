@@ -36,7 +36,14 @@ public class OrderItemService : IOrderItemService
 
     public async Task<ServiceResponse<ICollection<OrderItemDTO>>> GetOrderItems(Guid orderId, CancellationToken cancellationToken = default)
     {
-        var orderItems = await _repository.ListAsync(new OrderItemProjectionSpec(orderId), cancellationToken);
+        var orderItems = await _repository.ListAsync(new OrderItemProjectionSpec(orderId, "Order"), cancellationToken);
+
+        return ServiceResponse<ICollection<OrderItemDTO>>.ForSuccess(orderItems);
+    }
+
+    public async Task<ServiceResponse<ICollection<OrderItemDTO>>> GetOrderItemsByProductId(Guid productId, CancellationToken cancellationToken = default)
+    {
+        var orderItems = await _repository.ListAsync(new OrderItemProjectionSpec(productId, "Product"), cancellationToken);
 
         return ServiceResponse<ICollection<OrderItemDTO>>.ForSuccess(orderItems);
     }
