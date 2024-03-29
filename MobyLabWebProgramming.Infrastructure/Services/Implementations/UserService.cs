@@ -66,7 +66,9 @@ public class UserService : IUserService
             Id = result.Id,
             Email = result.Email,
             Name = result.Name,
-            Role = result.Role
+            Role = result.Role,
+            CartId = result.CartId ?? Guid.Empty,
+            FeedbackFormId = result.FeedbackFormId ?? Guid.Empty
         };
 
         return ServiceResponse<LoginResponseDTO>.ForSuccess(new()
@@ -193,27 +195,14 @@ public class UserService : IUserService
 
         if (user.CartId != null)
         {
-            var cart = await _repository.GetAsync<Cart>(user.CartId.Value, cancellationToken);
+            var cart = await _cartService.GetCart(user.CartId.Value, cancellationToken); // Get the cart of the user.
 
-            if (cart == null)
+            if (cart == null || cart.Result == null)
             {
                 return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart not found!", ErrorCodes.EntityNotFound));
             }
 
-            await _cartService.DeleteCart(new UserDTO()
-            {
-                Id = user.Id,
-                Name = user.Name,
-                Email = user.Email,
-                Role = user.Role,
-                Cart = new CartDTO
-                {
-                    Id = cart.Id,
-                    Size = cart.Size,
-                    TotalPrice = cart.TotalPrice
-                }
-            }
-            , cancellationToken); // Delete the cart of the user.
+            await _cartService.DeleteCart(cart.Result.Id, cancellationToken); // Delete the cart of the user.
         }
 
         await _repository.DeleteAsync<User>(id, cancellationToken); // Delete the entity.

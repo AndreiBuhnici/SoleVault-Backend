@@ -22,19 +22,9 @@ public class CartService : ICartService
         _cartItemService = cartItemService;
     }
 
-    public async Task<ServiceResponse> ClearCart(ClearCartDTO clearCartDTO, UserDTO requestingUser, CancellationToken cancellationToken = default)
+    public async Task<ServiceResponse> ClearCart(ClearCartDTO clearCartDTO, CartDTO currentCart, CancellationToken cancellationToken = default)
     {
-        if (requestingUser == null)
-        {
-            return ServiceResponse.FromError(new(HttpStatusCode.Forbidden, "User not found!", ErrorCodes.EntityNotFound));
-        }
-
-        if (requestingUser.Cart == null)
-        {
-            return ServiceResponse<CartDTO>.FromError(new(HttpStatusCode.BadRequest, "Cart not found!", ErrorCodes.EntityNotFound));
-        }
-
-        var cartItems = await _cartItemService.GetCartItems(requestingUser, cancellationToken);
+        var cartItems = await _cartItemService.GetCartItems(currentCart.Id, cancellationToken);
 
         if (cartItems == null || cartItems.Result == null)
         {
@@ -54,7 +44,7 @@ public class CartService : ICartService
                 cartItemRemoveDTO.Bought = true;
             }
 
-            await _cartItemService.RemoveCartItem(cartItemRemoveDTO, requestingUser, cancellationToken);
+            await _cartItemService.RemoveCartItem(cartItemRemoveDTO, currentCart, cancellationToken);
         }
 
         return ServiceResponse.ForSuccess();
@@ -85,19 +75,9 @@ public class CartService : ICartService
         return ServiceResponse<CartDTO>.ForSuccess(cartDTO);
     }
 
-    public async Task<ServiceResponse<CartDTO>> GetCart(UserDTO requestingUser, CancellationToken cancellationToken = default)
+    public async Task<ServiceResponse<CartDTO>> GetCart(Guid id, CancellationToken cancellationToken = default)
     {
-        if (requestingUser == null)
-        {
-            return ServiceResponse<CartDTO>.FromError(new(HttpStatusCode.Forbidden, "User not found!", ErrorCodes.EntityNotFound));
-        }
-
-        if (requestingUser.Cart == null)
-        {
-            return ServiceResponse<CartDTO>.FromError(new(HttpStatusCode.BadRequest, "Cart not found!", ErrorCodes.EntityNotFound));
-        }
-
-        var cart = await _repository.GetAsync(new CartProjectionSpec(requestingUser.Cart.Id), cancellationToken);
+        var cart = await _repository.GetAsync(new CartProjectionSpec(id), cancellationToken);
 
         if (cart == null)
         {
@@ -107,26 +87,14 @@ public class CartService : ICartService
         return ServiceResponse<CartDTO>.ForSuccess(cart);
     }
 
-    public async Task<ServiceResponse> DeleteCart(UserDTO requestingUser, CancellationToken cancellationToken = default)
+    public async Task<ServiceResponse> DeleteCart(Guid id, CancellationToken cancellationToken = default)
     {
-        if (requestingUser == null)
-        {
-            return ServiceResponse.FromError(new(HttpStatusCode.Forbidden, "User not found!", ErrorCodes.EntityNotFound));
-        }
-
-        if (requestingUser.Cart == null)
-        {
-            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart not found!", ErrorCodes.EntityNotFound));
-        }
-
-        var cart = await _repository.GetAsync<Cart>(requestingUser.Cart.Id, cancellationToken);
+        var cart = await _repository.GetAsync<Cart>(id, cancellationToken);
 
         if (cart == null)
         {
             return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart not found!", ErrorCodes.EntityNotFound));
         }
-
-        await ClearCart(new ClearCartDTO() { Bought = false } , requestingUser, cancellationToken);
 
         await _repository.DeleteAsync<Cart>(cart.Id, cancellationToken);
 

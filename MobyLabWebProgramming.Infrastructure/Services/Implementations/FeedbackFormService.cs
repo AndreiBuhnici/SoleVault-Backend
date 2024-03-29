@@ -67,19 +67,9 @@ public class FeedbackFormService : IFeedbackFormService
         return ServiceResponse.ForSuccess();
     }
 
-    public async Task<ServiceResponse<FeedbackFormDTO>> GetFeedbackForm(UserDTO requstingUser, CancellationToken cancellationToken = default)
+    public async Task<ServiceResponse<FeedbackFormDTO>> GetFeedbackForm(Guid id, CancellationToken cancellationToken = default)
     {
-        if (requstingUser == null)
-        {
-            return ServiceResponse<FeedbackFormDTO>.FromError(new(HttpStatusCode.Forbidden, "User not found!", ErrorCodes.EntityNotFound));
-        }
-
-        if (requstingUser.FeedbackForm == null)
-        {
-            return ServiceResponse<FeedbackFormDTO>.FromError(new(HttpStatusCode.BadRequest, "Feedback form not found!", ErrorCodes.EntityNotFound));
-        }
-
-        var feedbackForm = await _repository.GetAsync<FeedbackForm>(requstingUser.FeedbackForm.Id, cancellationToken);
+        var feedbackForm = await _repository.GetAsync<FeedbackForm>(id, cancellationToken);
 
         if (feedbackForm == null)
         {
@@ -92,8 +82,7 @@ public class FeedbackFormService : IFeedbackFormService
             Feedback = feedbackForm.Feedback,
             OverallRating = feedbackForm.OverallRating,
             DeliveryRating = feedbackForm.DeliveryRating,
-            FavoriteFeatures = feedbackForm.FavoriteFeatures,
-            CreatedAt = feedbackForm.CreatedAt
+            FavoriteFeatures = feedbackForm.FavoriteFeatures
         };
 
         return ServiceResponse<FeedbackFormDTO>.ForSuccess(feedbackFormDTO);

@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using MobyLabWebProgramming.Core.DataTransferObjects;
+using MobyLabWebProgramming.Core.Enums;
 using MobyLabWebProgramming.Core.Responses;
 using MobyLabWebProgramming.Infrastructure.Services.Interfaces;
 
@@ -13,8 +14,17 @@ public abstract class AuthorizedController : ControllerBase
 {
     private UserClaims? _userClaims;
     protected readonly IUserService UserService;
+    protected readonly ICartService? CartService;
+    protected readonly IFeedbackFormService? FeedbackFormService;
 
-    protected AuthorizedController(IUserService userService) => UserService = userService;
+    protected AuthorizedController(IUserService userService, ICartService? cartService = default, IFeedbackFormService? feedbackFormService = default) 
+    {
+        UserService = userService;
+        if (cartService != null)
+            CartService = cartService;
+        if (feedbackFormService != null)
+            FeedbackFormService = feedbackFormService;
+    }
 
     /// <summary>
     /// This method extracts the claims from the JWT into an object.
@@ -31,8 +41,19 @@ public abstract class AuthorizedController : ControllerBase
         var userId = enumerable.Where(x => x.Type == ClaimTypes.NameIdentifier).Select(x => Guid.Parse(x.Value)).FirstOrDefault();
         var email = enumerable.Where(x => x.Type == ClaimTypes.Email).Select(x => x.Value).FirstOrDefault();
         var name = enumerable.Where(x => x.Type == ClaimTypes.Name).Select(x => x.Value).FirstOrDefault();
+        var role = enumerable.Where(x => x.Type == ClaimTypes.Role).Select(x => x.Value).FirstOrDefault();
+        var cartId = enumerable.Where(x => x.Type == "CartId").Select(x => Guid.Parse(x.Value)).FirstOrDefault();
+        var feedbackFormId = enumerable.Where(x => x.Type == "FeedbackFormId").Select(x => Guid.Parse(x.Value)).FirstOrDefault();
 
-        _userClaims = new(userId, name, email);
+        UserRoleEnum userRoleEnum = role switch
+        {
+            "Admin" => UserRoleEnum.Admin,
+            "Client" => UserRoleEnum.Client,
+            "Personnel" => UserRoleEnum.Personnel,
+            _ => UserRoleEnum.Client
+        };
+
+        _userClaims = new(userId, name, email, userRoleEnum, cartId, feedbackFormId);
 
         return _userClaims;
     }
@@ -43,5 +64,15 @@ public abstract class AuthorizedController : ControllerBase
     protected Task<ServiceResponse<UserDTO>> GetCurrentUser()
     {
         return UserService.GetUser(ExtractClaims().Id);
+    }
+
+    protected Task<ServiceResponse<CartDTO>> GetCurrentUserCart()
+    {
+        return CartService!.GetCart(ExtractClaims().CartId ?? Guid.Empty);
+    }
+
+    protected Task<ServiceResponse<FeedbackFormDTO>> GetCurrentUserFeedbackForm()
+    {
+        return FeedbackFormService!.GetFeedbackForm(ExtractClaims().FeedbackFormId ?? Guid.Empty);
     }
 }

@@ -15,7 +15,7 @@ public class CartController : AuthorizedController
     private readonly ICartService _cartService;
     private readonly ICartItemService _cartItemService;
 
-    public CartController(IUserService userService, ICartService cartService, ICartItemService cartItemService) : base(userService)
+    public CartController(IUserService userService, ICartService cartService, ICartItemService cartItemService) : base(userService, cartService)
     {
         _cartService = cartService;
         _cartItemService = cartItemService;
@@ -25,49 +25,49 @@ public class CartController : AuthorizedController
     [HttpGet]
     public async Task<ActionResult<RequestResponse<CartDTO>>> GetCart()
     {
-        var currentUser = await GetCurrentUser();
-        return currentUser.Result != null ?
-            this.FromServiceResponse(await _cartService.GetCart(currentUser.Result)) :
-            this.ErrorMessageResult<CartDTO>(currentUser.Error);
+        var currentUserCart = await GetCurrentUserCart();
+        return currentUserCart.Result != null ?
+            this.FromServiceResponse(await _cartService.GetCart(currentUserCart.Result.Id)) :
+            this.ErrorMessageResult<CartDTO>(currentUserCart.Error);
     }
 
     [Authorize]
     [HttpDelete]
     public async Task<ActionResult<RequestResponse>> ClearCart()
     {
-        var currentUser = await GetCurrentUser();
-        return currentUser.Result != null ?
-            this.FromServiceResponse(await _cartService.ClearCart(new ClearCartDTO() { Bought = false }, currentUser.Result)) :
-            this.ErrorMessageResult(currentUser.Error);
+        var currentUserCart = await GetCurrentUserCart();
+        return currentUserCart.Result != null ?
+            this.FromServiceResponse(await _cartService.ClearCart(new ClearCartDTO() { Bought = false }, currentUserCart.Result)) :
+            this.ErrorMessageResult(currentUserCart.Error);
     }
 
     [Authorize]
     [HttpPost]
     public async Task<ActionResult<RequestResponse>> AddToCart([FromBody] CartItemAddDTO cartItemAddDTO)
     {
-        var currentUser = await GetCurrentUser();
-        return currentUser.Result != null ?
-            this.FromServiceResponse(await _cartItemService.AddCartItem(cartItemAddDTO, currentUser.Result)) :
-            this.ErrorMessageResult(currentUser.Error);
+        var currentUserCart = await GetCurrentUserCart();
+        return currentUserCart.Result != null ?
+            this.FromServiceResponse(await _cartItemService.AddCartItem(cartItemAddDTO, currentUserCart.Result)) :
+            this.ErrorMessageResult(currentUserCart.Error);
     }
 
     [Authorize]
     [HttpDelete]
     public async Task<ActionResult<RequestResponse>> RemoveFromCart([FromQuery] Guid cartItemId)
     {
-        var currentUser = await GetCurrentUser();
-        return currentUser.Result != null ?
-            this.FromServiceResponse(await _cartItemService.RemoveCartItem(new CartItemRemoveDTO() { Id = cartItemId, Bought = false }, currentUser.Result)) :
-            this.ErrorMessageResult(currentUser.Error);
+        var currentUserCart = await GetCurrentUserCart();
+        return currentUserCart.Result != null ?
+            this.FromServiceResponse(await _cartItemService.RemoveCartItem(new CartItemRemoveDTO() { Id = cartItemId, Bought = false }, currentUserCart.Result)) :
+            this.ErrorMessageResult(currentUserCart.Error);
     }
 
     [Authorize]
     [HttpPut]
     public async Task<ActionResult<RequestResponse>> UpdateCartItem([FromBody] CartItemUpdateDTO cartItemUpdateDTO)
     {
-        var currentUser = await GetCurrentUser();
-        return currentUser.Result != null ?
-            this.FromServiceResponse(await _cartItemService.UpdateCartItem(cartItemUpdateDTO, currentUser.Result)) :
-            this.ErrorMessageResult(currentUser.Error);
+        var currentUserCart = await GetCurrentUserCart();
+        return currentUserCart.Result != null ?
+            this.FromServiceResponse(await _cartItemService.UpdateCartItem(cartItemUpdateDTO, currentUserCart.Result)) :
+            this.ErrorMessageResult(currentUserCart.Error);
     }
 }

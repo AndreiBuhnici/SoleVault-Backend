@@ -45,7 +45,7 @@ public class OrderService : IOrderService
             return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart not found!", ErrorCodes.EntityNotFound));
         }
 
-        var cartItems = await _cartItemService.GetCartItems(requestingUser, cancellationToken);
+        var cartItems = await _cartItemService.GetCartItems(cart.Id, cancellationToken);
 
         if (cartItems == null || cartItems.Result == null)
         {
@@ -73,7 +73,14 @@ public class OrderService : IOrderService
             }, cancellationToken);
         }
 
-        await _cartService.ClearCart(new ClearCartDTO() { Bought = true}, requestingUser, cancellationToken);
+        CartDTO cartDTO = new()
+        {
+            Id = cart.Id,
+            Size = cart.Size,
+            TotalPrice = cart.TotalPrice
+        };
+
+        await _cartService.ClearCart(new ClearCartDTO() { Bought = true}, cartDTO, cancellationToken);
 
         return ServiceResponse.ForSuccess();
     }
