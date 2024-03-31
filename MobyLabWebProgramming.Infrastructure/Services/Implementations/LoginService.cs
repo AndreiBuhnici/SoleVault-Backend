@@ -31,7 +31,6 @@ public class LoginService : ILoginService
                 { ClaimTypes.Email, user.Email },
                 { ClaimTypes.Role, user.Role.ToString() },
                 { "CartId", user.CartId.ToString() },
-                { "FeedbackFormId", user.FeedbackFormId.ToString() }
             },
             IssuedAt = issuedAt, // This sets the "iat" claim to indicate then the JWT was emitted.
             Expires = issuedAt.Add(expiresIn), // This sets the "exp" claim to indicate when the JWT expires and cannot be used.

@@ -47,6 +47,7 @@ public sealed class OrderProjectionSpec : BaseSpec<OrderProjectionSpec, Order, O
         OrderDate = e.OrderDate,
         DeliveryDate = e.DeliveryDate,
         ShippingAddress = e.ShippingAddress,
+        PhoneNumber = e.PhoneNumber,
         Status = e.Status,
         Total = e.Total,
         CreatedAt = e.CreatedAt,

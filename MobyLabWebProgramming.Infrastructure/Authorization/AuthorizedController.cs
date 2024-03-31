@@ -43,7 +43,6 @@ public abstract class AuthorizedController : ControllerBase
         var name = enumerable.Where(x => x.Type == ClaimTypes.Name).Select(x => x.Value).FirstOrDefault();
         var role = enumerable.Where(x => x.Type == ClaimTypes.Role).Select(x => x.Value).FirstOrDefault();
         var cartId = enumerable.Where(x => x.Type == "CartId").Select(x => Guid.Parse(x.Value)).FirstOrDefault();
-        var feedbackFormId = enumerable.Where(x => x.Type == "FeedbackFormId").Select(x => Guid.Parse(x.Value)).FirstOrDefault();
 
         UserRoleEnum userRoleEnum = role switch
         {
@@ -53,7 +52,7 @@ public abstract class AuthorizedController : ControllerBase
             _ => UserRoleEnum.Client
         };
 
-        _userClaims = new(userId, name, email, userRoleEnum, cartId, feedbackFormId);
+        _userClaims = new(userId, name, email, userRoleEnum, cartId);
 
         return _userClaims;
     }
@@ -69,10 +68,5 @@ public abstract class AuthorizedController : ControllerBase
     protected Task<ServiceResponse<CartDTO>> GetCurrentUserCart()
     {
         return CartService!.GetCart(ExtractClaims().CartId ?? Guid.Empty);
-    }
-
-    protected Task<ServiceResponse<FeedbackFormDTO>> GetCurrentUserFeedbackForm()
-    {
-        return FeedbackFormService!.GetFeedbackForm(ExtractClaims().FeedbackFormId ?? Guid.Empty);
     }
 }

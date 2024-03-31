@@ -68,7 +68,6 @@ public class UserService : IUserService
             Name = result.Name,
             Role = result.Role,
             CartId = result.CartId ?? Guid.Empty,
-            FeedbackFormId = result.FeedbackFormId ?? Guid.Empty
         };
 
         return ServiceResponse<LoginResponseDTO>.ForSuccess(new()
@@ -206,6 +205,22 @@ public class UserService : IUserService
         }
 
         await _repository.DeleteAsync<User>(id, cancellationToken); // Delete the entity.
+
+        return ServiceResponse.ForSuccess();
+    }
+
+    public async Task<ServiceResponse> AddUserFeedbackFormId(Guid feedbackFormId, UserDTO requestingUser, CancellationToken cancellationToken = default)
+    {
+        var user = await _repository.GetAsync<User>(requestingUser.Id, cancellationToken); // Get the user entity.
+
+        if (user == null)
+        {
+            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "User not found!", ErrorCodes.EntityNotFound)); // Pack the proper error as the response.
+        }
+
+        user.FeedbackFormId = feedbackFormId; // Set the feedback request id to the user.
+
+        await _repository.UpdateAsync(user, cancellationToken); // Update the user entity.
 
         return ServiceResponse.ForSuccess();
     }

@@ -6,5 +6,5 @@ namespace MobyLabWebProgramming.Infrastructure.Services.Interfaces;
 public interface IFeedbackFormService
 {
     public Task<ServiceResponse> AddFeedbackForm(FeedBackFormAddDTO feedBackFormAddDTO, UserDTO requestingUser, CancellationToken cancellationToken = default);
-    public Task<ServiceResponse<FeedbackFormDTO>> GetFeedbackForm(Guid id, CancellationToken cancellationToken = default);
+    public Task<ServiceResponse<FeedbackFormDTO>> GetFeedbackForm(UserDTO requestingUser, CancellationToken cancellationToken = default);
 }

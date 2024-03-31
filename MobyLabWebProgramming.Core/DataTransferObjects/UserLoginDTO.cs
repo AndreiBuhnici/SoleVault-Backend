@@ -9,5 +9,4 @@ public class UserLoginDTO
     public string Email { get; set; } = default!;
     public UserRoleEnum Role { get; set; } = default!;
     public Guid CartId { get; set; }
-    public Guid FeedbackFormId { get; set; }
 }

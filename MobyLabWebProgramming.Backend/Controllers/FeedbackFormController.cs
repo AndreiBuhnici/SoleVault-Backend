@@ -34,9 +34,9 @@ public class FeedbackFormController : AuthorizedController
     [HttpGet]
     public async Task<ActionResult<RequestResponse<FeedbackFormDTO>>> GetFeedbackForm()
     {
-        var currentUserFeedbackForm = await GetCurrentUserFeedbackForm();
-        return currentUserFeedbackForm.Result != null ?
-            this.FromServiceResponse(await _feedbackFormService.GetFeedbackForm(currentUserFeedbackForm.Result.Id)) :
-            this.ErrorMessageResult<FeedbackFormDTO>(currentUserFeedbackForm.Error);
+        var currentUser = await GetCurrentUser();
+        return currentUser.Result != null ?
+            this.FromServiceResponse(await _feedbackFormService.GetFeedbackForm(currentUser.Result)) :
+            this.ErrorMessageResult<FeedbackFormDTO>(currentUser.Error);
     }
 }

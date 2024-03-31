@@ -58,6 +58,7 @@ public class OrderService : IOrderService
             OrderDate = DateTime.Now,
             DeliveryDate = DateTime.Now.AddDays(new Random().Next(3, 7)),
             ShippingAddress = orderAddDTO.ShippingAddress,
+            PhoneNumber = orderAddDTO.PhoneNumber,
             Status = "Pending",
             Total = cartItems.Result.Sum(ci => ci.Product.Price * ci.Quantity)
         }, cancellationToken);
@@ -119,6 +120,7 @@ public class OrderService : IOrderService
             OrderDate = order.OrderDate,
             DeliveryDate = order.DeliveryDate,
             ShippingAddress = order.ShippingAddress,
+            PhoneNumber = order.PhoneNumber,
             Status = order.Status,
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt
