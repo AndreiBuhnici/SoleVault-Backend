@@ -26,5 +26,8 @@ public enum ErrorCodes
     NotEnoughStock,
     InvalidQuantity,
     InvalidSearchQuery,
-    UserPermission
+    UserPermission,
+    InvalidStock,
+    InvalidPrice,
+    InvalidSize
 }

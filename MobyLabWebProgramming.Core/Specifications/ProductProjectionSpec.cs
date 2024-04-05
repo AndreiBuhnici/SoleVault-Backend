@@ -35,17 +35,37 @@ public sealed class ProductProjectionSpec : BaseSpec<ProductProjectionSpec, Prod
         UpdatedAt = e.UpdatedAt
     };
 
-    public ProductProjectionSpec(Guid id, string search)
+    public ProductProjectionSpec(Guid id, string? search)
     {
         if (search == "Product")
         {
             Query.Where(e => e.Id == id);
+            return;
         }
 
         if (search == "Owner")
         {
             Query.Where(e => e.OwnerId == id);
+            return;
         }
+
+
+        search = !string.IsNullOrWhiteSpace(search) ? search.Trim() : null;
+
+        if (search == null)
+        {
+            Query.Where(e => e.OwnerId == id);
+            return;
+        }
+
+        var searchExpr = $"%{search.Replace(" ", "%")}%";
+
+        Query.Where(e => e.OwnerId == id).Where(e => EF.Functions.ILike(e.Name, searchExpr) ||
+                                       EF.Functions.ILike(e.Description, searchExpr) ||
+                                       EF.Functions.ILike(e.Category.Name, searchExpr) ||
+                                       EF.Functions.ILike(e.Owner.Name, searchExpr) ||
+                                       EF.Functions.ILike(e.Color, searchExpr) ||
+                                       EF.Functions.ILike(e.Size.ToString(), searchExpr));
     }
 
     public ProductProjectionSpec(string? search)
@@ -63,6 +83,7 @@ public sealed class ProductProjectionSpec : BaseSpec<ProductProjectionSpec, Prod
                                        EF.Functions.ILike(e.Description, searchExpr) ||
                                        EF.Functions.ILike(e.Category.Name, searchExpr) ||
                                        EF.Functions.ILike(e.Owner.Name, searchExpr) ||
-                                       EF.Functions.ILike(e.Color, searchExpr));
+                                       EF.Functions.ILike(e.Color, searchExpr) ||
+                                       EF.Functions.ILike(e.Size.ToString(), searchExpr));
     }
 }

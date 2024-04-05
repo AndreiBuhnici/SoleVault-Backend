@@ -36,7 +36,7 @@ public class ProductController : AuthorizedController
     {
         var currentUser = await GetCurrentUser();
         return currentUser.Result != null ?
-            this.FromServiceResponse(await _productService.GetProductsByOwnerId(pagination)) :
+            this.FromServiceResponse(await _productService.GetProductsByOwnerId(pagination, currentUser.Result)) :
             this.ErrorMessageResult<PagedResponse<ProductDTO>>(currentUser.Error);
     }
 

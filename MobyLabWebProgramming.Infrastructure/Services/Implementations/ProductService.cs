@@ -48,6 +48,21 @@ public class ProductService : IProductService
             return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Product already exists!", ErrorCodes.ProductAlreadyExists));
         }
 
+        if (productAddDTO.Stock < 0)
+        {
+            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Stock cannot be negative!", ErrorCodes.InvalidStock));
+        }
+
+        if (productAddDTO.Price < 0)
+        {
+            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Price cannot be negative!", ErrorCodes.InvalidPrice));
+        }
+
+        if (productAddDTO.Size < 0)
+        {
+            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Size cannot be negative!", ErrorCodes.InvalidSize));
+        }
+
         await _repository.AddAsync(new Product
         {
             Name = productAddDTO.Name,
@@ -149,6 +164,16 @@ public class ProductService : IProductService
             return ServiceResponse.FromError(new(HttpStatusCode.Forbidden, "You are not the owner of this product!", ErrorCodes.NotOwner));
         }
 
+        if (productUpdateDTO.Stock < 0)
+        {
+            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Stock cannot be negative!", ErrorCodes.InvalidStock));
+        }
+
+        if (productUpdateDTO.Price < 0)
+        {
+            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Price cannot be negative!", ErrorCodes.InvalidPrice));
+        }
+
         product.Description = productUpdateDTO.Description ?? product.Description;
         product.Price = productUpdateDTO.Price ?? product.Price;
         product.Stock = productUpdateDTO.Stock ?? product.Stock;
@@ -159,14 +184,9 @@ public class ProductService : IProductService
         return ServiceResponse.ForSuccess();
     }
 
-    public async Task<ServiceResponse<PagedResponse<ProductDTO>>> GetProductsByOwnerId(PaginationSearchQueryParams pagination, CancellationToken cancellationToken = default)
+    public async Task<ServiceResponse<PagedResponse<ProductDTO>>> GetProductsByOwnerId(PaginationSearchQueryParams pagination, UserDTO requestingUser, CancellationToken cancellationToken = default)
     {
-        if (!Guid.TryParse(pagination.Search, out _))
-            return ServiceResponse<PagedResponse<ProductDTO>>.FromError(new(HttpStatusCode.BadRequest, "Invalid search query!", ErrorCodes.InvalidSearchQuery));
-
-        Guid guid = Guid.Parse(pagination.Search);
-
-        var result = await _repository.PageAsync(pagination, new ProductProjectionSpec(guid, "Owner"), cancellationToken);
+        var result = await _repository.PageAsync(pagination, new ProductProjectionSpec(requestingUser.Id, pagination.Search), cancellationToken);
 
         return ServiceResponse<PagedResponse<ProductDTO>>.ForSuccess(result);
     }
