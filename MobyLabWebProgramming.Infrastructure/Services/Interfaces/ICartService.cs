@@ -5,6 +5,7 @@ namespace MobyLabWebProgramming.Infrastructure.Services.Interfaces;
 
 public interface ICartService
 {
+    public Task<ServiceResponse<CartInfoDTO>> GetCartInfo(Guid id, CancellationToken cancellationToken = default);
     public Task<ServiceResponse<CartDTO>> CreateCart(UserDTO? requestingUser = null, CancellationToken cancellationToken = default);
     public Task<ServiceResponse<CartDTO>> GetCart(Guid id, CancellationToken cancellationToken = default);
     public Task<ServiceResponse> ClearCart(ClearCartDTO clearCartDTO, CartDTO currentCart, CancellationToken cancellationToken = default);

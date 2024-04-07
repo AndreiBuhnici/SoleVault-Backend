@@ -87,6 +87,27 @@ public class CartService : ICartService
         return ServiceResponse<CartDTO>.ForSuccess(cart);
     }
 
+    public async Task<ServiceResponse<CartInfoDTO>> GetCartInfo(Guid id, CancellationToken cancellationToken = default)
+    {
+        var cart = await _repository.GetAsync(new CartProjectionSpec(id), cancellationToken);
+
+        if (cart == null)
+        {
+            return ServiceResponse<CartInfoDTO>.FromError(new(HttpStatusCode.BadRequest, "Cart not found!", ErrorCodes.EntityNotFound));
+        }
+
+        CartInfoDTO cartInfoDTO = new()
+        {
+            Id = cart.Id,
+            Size = cart.Size,
+            TotalPrice = cart.TotalPrice,
+            CreatedAt = cart.CreatedAt,
+            UpdatedAt = cart.UpdatedAt
+        };
+
+        return ServiceResponse<CartInfoDTO>.ForSuccess(cartInfoDTO);
+    }
+
     public async Task<ServiceResponse> DeleteCart(Guid id, CancellationToken cancellationToken = default)
     {
         var cart = await _repository.GetAsync<Cart>(id, cancellationToken);

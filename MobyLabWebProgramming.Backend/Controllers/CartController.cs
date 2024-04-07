@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MobyLabWebProgramming.Core.DataTransferObjects;
+using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
 using MobyLabWebProgramming.Infrastructure.Authorization;
 using MobyLabWebProgramming.Infrastructure.Extensions;
@@ -12,13 +13,33 @@ namespace MobyLabWebProgramming.Backend.Controllers;
 [Route("api/[controller]/[action]")]
 public class CartController : AuthorizedController
 {
-    private readonly ICartService _cartService;
     private readonly ICartItemService _cartItemService;
+    private readonly ICartService _cartService;
 
     public CartController(IUserService userService, ICartService cartService, ICartItemService cartItemService) : base(userService, cartService)
     {
         _cartService = cartService;
         _cartItemService = cartItemService;
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult<RequestResponse<CartInfoDTO>>> GetCartInfo()
+    {
+        var currentUserCart = await GetCurrentUserCart();
+        return currentUserCart.Result != null ?
+            this.FromServiceResponse(await _cartService.GetCartInfo(currentUserCart.Result.Id)) :
+            this.ErrorMessageResult<CartInfoDTO>(currentUserCart.Error);
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult<RequestResponse<PagedResponse<CartItemDTO>>>> GetCartItems([FromQuery] PaginationSearchQueryParams pagination)
+    {
+        var currentUserCart = await GetCurrentUserCart();
+        return currentUserCart.Result != null ?
+            this.FromServiceResponse(await _cartItemService.GetCartItemsPage(pagination, currentUserCart.Result)) :
+            this.ErrorMessageResult<PagedResponse<CartItemDTO>>(currentUserCart.Error);
     }
 
     [Authorize]
@@ -30,6 +51,9 @@ public class CartController : AuthorizedController
             this.FromServiceResponse(await _cartService.GetCart(currentUserCart.Result.Id)) :
             this.ErrorMessageResult<CartDTO>(currentUserCart.Error);
     }
+
+
+    
 
     [Authorize]
     [HttpDelete]

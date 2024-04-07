@@ -22,25 +22,55 @@ public sealed class CartItemProjectionSpec : BaseSpec<CartItemProjectionSpec, Ca
             Category = new()
             {
                 Id = e.Product.Category.Id,
-                Name = e.Product.Category.Name
-            }
+                Name = e.Product.Category.Name,
+                Description = e.Product.Category.Description,
+                CreatedAt = e.Product.Category.CreatedAt,
+                UpdatedAt = e.Product.Category.UpdatedAt
+            },
+            Owner = new()
+            {
+                Id = e.Product.Owner.Id,
+                Email = e.Product.Owner.Email,
+                Name = e.Product.Owner.Name,
+                Role = e.Product.Owner.Role,
+            },
         },
         Quantity = e.Quantity,
+        Price = e.Price,
         CreatedAt = e.CreatedAt,
         UpdatedAt = e.UpdatedAt
     };
 
-    public CartItemProjectionSpec(Guid Id, string search)
+    public CartItemProjectionSpec(Guid Id, string? search)
     {
         if (search == "Cart")
         {
             Query.Where(e => e.CartId == Id);
+            return;
         }
 
         if (search == "Product")
         {
             Query.Where(e => e.ProductId == Id);
+            return;
         }
+
+        search = !string.IsNullOrWhiteSpace(search) ? search.Trim() : null;
+
+        if (search == null)
+        {
+            Query.Where(e => e.CartId == Id);
+            return;
+        }
+
+        var searchExpr = $"%{search.Replace(" ", "%")}%";
+
+        Query.Where(e => e.CartId == Id).Where(e => EF.Functions.ILike(e.Product.Name, searchExpr) ||
+                                       EF.Functions.ILike(e.Product.Description, searchExpr) ||
+                                       EF.Functions.ILike(e.Product.Category.Name, searchExpr) ||
+                                       EF.Functions.ILike(e.Product.Owner.Name, searchExpr) ||
+                                       EF.Functions.ILike(e.Product.Color, searchExpr) ||
+                                       EF.Functions.ILike(e.Product.Size.ToString(), searchExpr));
     }
 
     public CartItemProjectionSpec(Guid productId, Guid cartId)

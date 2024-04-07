@@ -22,7 +22,9 @@ public sealed class ProductProjectionSpec : BaseSpec<ProductProjectionSpec, Prod
         {
             Id = e.Category.Id,
             Name = e.Category.Name,
-            Description = e.Category.Description
+            Description = e.Category.Description,
+            CreatedAt = e.Category.CreatedAt,
+            UpdatedAt = e.Category.UpdatedAt
         },
         Owner = new()
         {

@@ -2,6 +2,7 @@
 using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Entities;
 using MobyLabWebProgramming.Core.Errors;
+using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
 using MobyLabWebProgramming.Core.Specifications;
 using MobyLabWebProgramming.Infrastructure.Database;
@@ -187,6 +188,13 @@ public class CartItemService : ICartItemService
         var cartItems = await _repository.ListAsync(new CartItemProjectionSpec(cartId, "Cart"), cancellationToken);
 
         return ServiceResponse<ICollection<CartItemDTO>>.ForSuccess(cartItems);
+    }
+
+    public async Task<ServiceResponse<PagedResponse<CartItemDTO>>> GetCartItemsPage(PaginationSearchQueryParams pagination, CartDTO currentCart, CancellationToken cancellationToken = default)
+    {
+        var cartItems = await _repository.PageAsync(pagination, new CartItemProjectionSpec(currentCart.Id, pagination.Search), cancellationToken);
+
+        return ServiceResponse<PagedResponse<CartItemDTO>>.ForSuccess(cartItems);
     }
 
     public async Task<ServiceResponse<ICollection<CartItemDTO>>> GetCartItemsByProductId(Guid productId, CancellationToken cancellationToken = default)

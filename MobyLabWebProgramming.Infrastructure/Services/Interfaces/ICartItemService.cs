@@ -12,5 +12,7 @@ public interface ICartItemService
     public Task<ServiceResponse> RemoveCartItem(CartItemRemoveDTO cartItemRemoveDTO, CartDTO currentCart, CancellationToken cancellationToken = default);
     public Task<ServiceResponse<ICollection<CartItemDTO>>> GetCartItems(Guid cartId, CancellationToken cancellationToken = default);
     public Task<ServiceResponse<ICollection<CartItemDTO>>> GetCartItemsByProductId(Guid productId, CancellationToken cancellationToken = default);
+    public Task<ServiceResponse<PagedResponse<CartItemDTO>>> GetCartItemsPage(PaginationSearchQueryParams pagination, CartDTO currentCart, CancellationToken cancellationToken = default);
+
 }
 
