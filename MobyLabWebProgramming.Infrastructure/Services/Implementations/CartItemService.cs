@@ -62,6 +62,9 @@ public class CartItemService : ICartItemService
             cart.Size += cartItemAddDTO.Quantity;
             cart.TotalPrice += product.Price * cartItemAddDTO.Quantity;
             await _repository.UpdateAsync(cart, cancellationToken);
+
+            product.Stock -= cartItemAddDTO.Quantity;
+            await _repository.UpdateAsync(product, cancellationToken);
         }
         else
         {
@@ -71,10 +74,6 @@ public class CartItemService : ICartItemService
                 Quantity: cartItem.Quantity + cartItemAddDTO.Quantity
             ), currentCart, cancellationToken);
         }
-
-        product.Stock -= cartItemAddDTO.Quantity;
-
-        await _repository.UpdateAsync(product, cancellationToken);
 
         return ServiceResponse.ForSuccess();
     }
@@ -172,8 +171,10 @@ public class CartItemService : ICartItemService
 
                 cart.Size += cartItemUpdateDTO.Quantity.Value - cartItem.Quantity;
                 cart.TotalPrice += product.Price * cartItemUpdateDTO.Quantity.Value - cartItem.Price;
-
                 await _repository.UpdateAsync(cart, cancellationToken);
+
+                product.Stock -= cartItemUpdateDTO.Quantity.Value - cartItem.Quantity;
+                await _repository.UpdateAsync(product, cancellationToken);
 
                 cartItem.Quantity = cartItemUpdateDTO.Quantity.Value;
                 cartItem.Price = product.Price * cartItem.Quantity;
