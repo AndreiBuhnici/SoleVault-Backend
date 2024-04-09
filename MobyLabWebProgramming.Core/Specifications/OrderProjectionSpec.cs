@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Ardalis.Specification;
+using Microsoft.EntityFrameworkCore;
 using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Entities;
 
@@ -54,8 +55,19 @@ public sealed class OrderProjectionSpec : BaseSpec<OrderProjectionSpec, Order, O
         UpdatedAt = e.UpdatedAt
     };
 
-    public OrderProjectionSpec(Guid userId)
+    public OrderProjectionSpec(Guid userId, string? search)
     {
-        Query.Where(e => e.UserId == userId);
+        search = !string.IsNullOrWhiteSpace(search) ? search.Trim() : null;
+
+        if (search == null)
+        {
+            Query.Where(e => e.UserId == userId);
+            return;
+        }
+
+        var searchExpr = $"%{search.Replace(" ", "%")}%";
+
+        Query.Where(e => e.UserId == userId).Where(e => EF.Functions.ILike(e.ShippingAddress, searchExpr) ||
+                                              EF.Functions.ILike(e.Status, searchExpr));
     }
 }

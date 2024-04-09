@@ -38,6 +38,11 @@ public class OrderService : IOrderService
             return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart not found!", ErrorCodes.EntityNotFound));
         }
 
+        if (orderAddDTO.PhoneNumber.Length != 10 || !orderAddDTO.PhoneNumber.All(char.IsDigit))
+        {
+            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Invalid phone number!", ErrorCodes.InvalidPhoneNumber));
+        }
+
         var cart = await _repository.GetAsync<Cart>(requestingUser.Cart.Id, cancellationToken);
 
         if (cart == null)
@@ -52,11 +57,16 @@ public class OrderService : IOrderService
             return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart items not found!", ErrorCodes.EntityNotFound));
         }
 
+        if (cartItems.Result.Count == 0)
+        {
+            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Cart is empty!", ErrorCodes.CartEmpty));
+        }
+
         var order = await _repository.AddAsync(new Order
         {
             UserId = requestingUser.Id,
             OrderDate = DateTime.Now,
-            DeliveryDate = DateTime.Now.AddDays(new Random().Next(3, 7)),
+            DeliveryDate = DateTime.Now.AddDays(new Random().Next(3, 7)).Date,
             ShippingAddress = orderAddDTO.ShippingAddress,
             PhoneNumber = orderAddDTO.PhoneNumber,
             Status = "Pending",
@@ -136,7 +146,7 @@ public class OrderService : IOrderService
             return ServiceResponse<PagedResponse<OrderDTO>>.FromError(new(HttpStatusCode.Forbidden, "User not found!", ErrorCodes.EntityNotFound));
         }
 
-        var orders = await _repository.PageAsync(pagination, new OrderProjectionSpec(requestingUser.Id), cancellationToken);
+        var orders = await _repository.PageAsync(pagination, new OrderProjectionSpec(requestingUser.Id, pagination.Search), cancellationToken);
 
         return ServiceResponse<PagedResponse<OrderDTO>>.ForSuccess(orders);
     }

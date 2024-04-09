@@ -29,5 +29,7 @@ public enum ErrorCodes
     UserPermission,
     InvalidStock,
     InvalidPrice,
-    InvalidSize
+    InvalidSize,
+    InvalidPhoneNumber,
+    CartEmpty
 }
