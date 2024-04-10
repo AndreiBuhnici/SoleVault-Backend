@@ -164,7 +164,7 @@ public class CartItemService : ICartItemService
                     return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Product not found!", ErrorCodes.EntityNotFound));
                 }
 
-                if (product.Stock < cartItemUpdateDTO.Quantity.Value)
+                if (product.Stock < cartItemUpdateDTO.Quantity.Value - cartItem.Quantity)
                 {
                     return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Not enough stock!", ErrorCodes.NotEnoughStock));
                 }
