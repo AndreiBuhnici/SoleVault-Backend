@@ -148,6 +148,29 @@ public class OrderService : IOrderService
 
         var orders = await _repository.PageAsync(pagination, new OrderProjectionSpec(requestingUser.Id, pagination.Search), cancellationToken);
 
+        for (int i = 0; i < orders.Data.Count; i++)
+        {
+            if (orders.Data[i].Status == "Delivered")
+            {
+                continue;
+            }
+
+            orders.Data[i].Status = orders.Data[i].DeliveryDate < DateTime.Now ? "Delivered" : orders.Data[i].Status;
+
+            var order = await _repository.GetAsync<Order>(orders.Data[i].Id, cancellationToken);
+
+            if (order == null)
+            {
+                continue;
+            }
+
+            if (order.Status != orders.Data[i].Status)
+            {
+                order.Status = orders.Data[i].Status;
+                await _repository.UpdateAsync(order, cancellationToken);
+            }
+        }
+
         return ServiceResponse<PagedResponse<OrderDTO>>.ForSuccess(orders);
     }
 }
