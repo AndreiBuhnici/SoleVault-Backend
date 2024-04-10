@@ -31,5 +31,6 @@ public enum ErrorCodes
     InvalidPrice,
     InvalidSize,
     InvalidPhoneNumber,
-    CartEmpty
+    CartEmpty,
+    FeedbackFormAlreadyExists
 }

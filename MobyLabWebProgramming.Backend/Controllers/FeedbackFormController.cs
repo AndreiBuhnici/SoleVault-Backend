@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MobyLabWebProgramming.Core.DataTransferObjects;
+using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
 using MobyLabWebProgramming.Infrastructure.Authorization;
 using MobyLabWebProgramming.Infrastructure.Extensions;
@@ -38,5 +39,15 @@ public class FeedbackFormController : AuthorizedController
         return currentUser.Result != null ?
             this.FromServiceResponse(await _feedbackFormService.GetFeedbackForm(currentUser.Result)) :
             this.ErrorMessageResult<FeedbackFormDTO>(currentUser.Error);
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult<RequestResponse<PagedResponse<FeedbackFormDTO>>>> GetFeedbackForms([FromQuery] PaginationSearchQueryParams pagination)
+    {
+        var currentUser = await GetCurrentUser();
+        return currentUser.Result != null ?
+            this.FromServiceResponse(await _feedbackFormService.GetFeedbackForms(pagination, currentUser.Result)) :
+            this.ErrorMessageResult<PagedResponse<FeedbackFormDTO>>(currentUser.Error);
     }
 }

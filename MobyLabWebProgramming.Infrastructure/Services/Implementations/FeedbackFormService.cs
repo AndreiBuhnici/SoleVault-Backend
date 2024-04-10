@@ -4,7 +4,9 @@ using MobyLabWebProgramming.Core.DataTransferObjects;
 using MobyLabWebProgramming.Core.Entities;
 using MobyLabWebProgramming.Core.Enums;
 using MobyLabWebProgramming.Core.Errors;
+using MobyLabWebProgramming.Core.Requests;
 using MobyLabWebProgramming.Core.Responses;
+using MobyLabWebProgramming.Core.Specifications;
 using MobyLabWebProgramming.Infrastructure.Database;
 using MobyLabWebProgramming.Infrastructure.Repositories.Interfaces;
 using MobyLabWebProgramming.Infrastructure.Services.Interfaces;
@@ -36,7 +38,7 @@ public class FeedbackFormService : IFeedbackFormService
 
         if (requstingUser.FeedbackForm != null)
         {
-            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Feedback form already exists!", ErrorCodes.CannotAdd));
+            return ServiceResponse.FromError(new(HttpStatusCode.BadRequest, "Feedback form already exists!", ErrorCodes.FeedbackFormAlreadyExists));
         }
 
         var feedbackForm = new FeedbackForm()
@@ -79,5 +81,17 @@ public class FeedbackFormService : IFeedbackFormService
         };
 
         return ServiceResponse<FeedbackFormDTO>.ForSuccess(feedbackFormDTO);
+    }
+
+    public async Task<ServiceResponse<PagedResponse<FeedbackFormDTO>>> GetFeedbackForms(PaginationSearchQueryParams pagination, UserDTO requestingUser, CancellationToken cancellationToken = default)
+    {
+        if (requestingUser.Role != UserRoleEnum.Admin)
+        {
+            return ServiceResponse<PagedResponse<FeedbackFormDTO>>.FromError(new(HttpStatusCode.Forbidden, "User is not an admin!", ErrorCodes.UserPermission));
+        }
+
+        var feedbackForms = await _repository.PageAsync(pagination, new FeedbackFormProjectionSpec(pagination.Search), cancellationToken);
+
+        return ServiceResponse<PagedResponse<FeedbackFormDTO>>.ForSuccess(feedbackForms);
     }
 }
